@@ -31,4 +31,4 @@ class BookUpdateModel(BaseModel):
     page_count: int | None = None
     language: str | None = None
     rating: float | None = None
-    updated_at: datetime
+    
