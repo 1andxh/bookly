@@ -50,3 +50,11 @@
     "rating": 4.6
   }
 ]
+
+user = {
+    "firstname": "Daniel",
+    "lastname": "Mensah",
+    "username": "danmensah",
+    "email": "daniel.mensah@example.com",
+    "password": "StrongPass123!"
+}
