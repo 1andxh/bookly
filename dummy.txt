@@ -58,3 +58,10 @@ user = {
     "email": "daniel.mensah@example.com",
     "password": "StrongPass123!"
 }
+{
+    "firstname": "Daniella",
+    "lastname": "Kumi",
+    "username": "dkums",
+    "email": "dkumi23@example.com",
+    "password": "StrongPass124!"
+}

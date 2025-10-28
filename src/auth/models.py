@@ -3,6 +3,7 @@ from sqlalchemy import String
 import sqlalchemy.dialects.postgresql as pg
 import uuid
 from datetime import datetime 
+from sqlalchemy.ext import declarative
 
 class User(SQLModel, table=True):
     __tablename__: str = "users"
@@ -34,6 +35,7 @@ class User(SQLModel, table=True):
             default=datetime.now
         )
     )
+
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
