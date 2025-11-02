@@ -7,11 +7,11 @@ from src.books.schemas import Book, BookUpdateModel, BookCreateModel
 from src.books.models import Book
 from src.db.main import get_session
 from src.books.service import BookService
-from src.auth.dependencies import TokenBearer
+from src.auth.dependencies import TokenBearer, AccessTokenBearer
 
 book_router = APIRouter()
 book_service =BookService()
-access_token_bearer = TokenBearer()
+access_token_bearer = AccessTokenBearer()
 
 @book_router.get("/{book_id}")
 async def get_book(
