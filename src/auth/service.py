@@ -26,6 +26,7 @@ class UserAuthService():
             **user_data_dict
         )
         new_user.password_hash = hash_password(user_data_dict['password'])
+        new_user.role = 'User'
 
         session.add(new_user)
 

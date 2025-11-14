@@ -11,15 +11,19 @@ from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
 from .utils import create_access_token, decode_token, verify_password
 from datetime import timedelta, datetime
-from .dependencies import RefreshTokenBearer, AccessTokenBearer, get_current_user
+from .dependencies import RefreshTokenBearer, AccessTokenBearer, get_current_user, RoleChecker
 from src.db.redis import add_jti_to_blocklist
 from typing import Any
+
+
 auth_router = APIRouter()
 user_auth_service = UserAuthService()
 refresh_token_bearer = RefreshTokenBearer()
 access_token_bearer = AccessTokenBearer()
-
+role_checker = RoleChecker(['admin', 'user'])
 REFRESH_TOKEN_EXPIRY = 2
+
+
 
 @auth_router.post('/signup', response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user_account(user_data: UserCreateModel, session: AsyncSession = Depends(get_session)) :
@@ -49,7 +53,8 @@ async def login(login: UserLoginModel, session: AsyncSession = Depends(get_sessi
             access_token = create_access_token(
                 user_data={
                     'email': user.email,
-                    'user_id': str(user.id)
+                    'user_id': str(user.id),
+                    'role': user.role
                 }
             )
             refresh_token = create_access_token(
@@ -90,7 +95,7 @@ async def refresh_token(token_data: dict = Depends(refresh_token_bearer)):
     )
 
 @auth_router.get('/me')
-async def get_my_user(user= Depends(get_current_user)):
+async def get_my_user(user= Depends(get_current_user), _:bool = Depends(role_checker)):
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

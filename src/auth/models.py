@@ -4,6 +4,12 @@ import sqlalchemy.dialects.postgresql as pg
 import uuid
 from datetime import datetime 
 from sqlalchemy.ext import declarative
+from enum import Enum
+
+
+class Role(str , Enum):
+    USER = "user"
+    ADMIN = "admin"
 
 class User(SQLModel, table=True):
     __tablename__: str = "users"
@@ -22,6 +28,11 @@ class User(SQLModel, table=True):
     email: str = Field(sa_column=Column(String(50), nullable=False))
     firstname: str = Field(sa_column=Column(String(50), nullable=False))
     lastname: str = Field(sa_column=Column(String(50), nullable=False))
+    role: str = Field(sa_column=Column(
+        pg.VARCHAR, nullable=False, server_default=Role.USER.value
+    ),
+    # default=Role.USER.value
+    )
     is_verified: bool = Field(default=False)
     created_at: datetime = Field(
         sa_column=Column(
