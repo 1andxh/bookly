@@ -65,3 +65,7 @@ user = {
     "email": "dkumi23@example.com",
     "password": "StrongPass124!"
 }
+{
+    "email": "plutomania123@example.com",
+    "password": "weakpass1234!"
+}

@@ -9,7 +9,7 @@ from src.db.redis import token_in_blocklist
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
 from .service import UserAuthService
-from .models import User
+from src.db.models import User
 
 user_auth_service = UserAuthService()
 
@@ -28,7 +28,12 @@ class TokenBearer(HTTPBearer):
         credentials: HTTPAuthorizationCredentials | None = await super().__call__(
             request
         )
-        assert credentials is not None
+        # assert credentials is not None
+        if credentials is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="invalid or missing credentials",
+            )
 
         """extract token"""
         token = credentials.credentials
@@ -70,6 +75,18 @@ class AccessTokenBearer(TokenBearer):
         if token_data.get("refresh", False):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="Provide access token"
+            )
+
+        user_details = token_data.get("user")
+        if user_details is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token payload is missing required 'user' object",
+            )
+        if not user_details.get("user_id"):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token payload is missing required 'user_id'.",
             )
 
 
