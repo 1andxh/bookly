@@ -10,6 +10,13 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
 from .service import UserAuthService
 from src.db.models import User
+from src.exceptions import (
+    RefreshTokenRequiredException,
+    InvalidTokenException,
+    AccessTokenRequiredException,
+    InsufficientPermissionException,
+    RevokedTokenException,
+)
 
 user_auth_service = UserAuthService()
 
@@ -30,10 +37,11 @@ class TokenBearer(HTTPBearer):
         )
         # assert credentials is not None
         if credentials is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="invalid or missing credentials",
-            )
+            raise InvalidTokenException()
+            # raise HTTPException(
+            #     status_code=status.HTTP_401_UNAUTHORIZED,
+            #     detail="invalid or missing credentials",
+            # )
 
         """extract token"""
         token = credentials.credentials
@@ -43,16 +51,18 @@ class TokenBearer(HTTPBearer):
 
         """check token validity"""
         if token_data is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token or expired token!",
-            )
+            # raise HTTPException(
+            #     status_code=status.HTTP_401_UNAUTHORIZED,
+            #     detail="Invalid token or expired token!",
+            # )
+            raise InvalidTokenException()
 
         if await token_in_blocklist(token_data["jti"]):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token or revoked token! Renew token",
-            )
+            # raise HTTPException(
+            #     status_code=status.HTTP_401_UNAUTHORIZED,
+            #     detail="Invalid token or revoked token! Renew token",
+            # )
+            raise RevokedTokenException()
 
         self.verify_token_data(token_data)
 
@@ -73,9 +83,10 @@ class AccessTokenBearer(TokenBearer):
     def verify_token_data(self, token_data: dict[str, Any]) -> None:
         # check token type
         if token_data.get("refresh", False):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Provide access token"
-            )
+            # raise HTTPException(
+            #     status_code=status.HTTP_403_FORBIDDEN, detail="Provide access token"
+            # )
+            raise AccessTokenRequiredException()
 
         user_details = token_data.get("user")
         if user_details is None:
@@ -95,9 +106,10 @@ class RefreshTokenBearer(TokenBearer):
     def verify_token_data(self, token_data: dict[str, Any]) -> None:
         # check token type
         if not token_data.get("refresh", False):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Provide refresh token"
-            )
+            # raise HTTPException(
+            #     status_code=status.HTTP_403_FORBIDDEN, detail="Provide refresh token"
+            # )
+            raise RefreshTokenRequiredException()
 
 
 async def get_current_user(
@@ -119,8 +131,9 @@ class RoleChecker:
 
     async def __call__(self, current_user: CurrentUser) -> Any:
         if current_user.role not in self.allowed_roles:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to perfrom this action",
-            )
+            # raise HTTPException(
+            #     status_code=status.HTTP_403_FORBIDDEN,
+            #     detail="Not authorized to perfrom this action",
+            # )
+            raise InsufficientPermissionException()
         # return True

@@ -16,6 +16,12 @@ from .dependencies import (
 )
 from src.db.redis import add_jti_to_blocklist
 from typing import Any
+from src.exceptions import (
+    UserAlreadyExistsException,
+    UserNotFoundException,
+    InvalidCredentialsException,
+    InvalidTokenException,
+)
 
 
 auth_router = APIRouter()
@@ -37,9 +43,10 @@ async def create_user_account(
     user_exists = await user_auth_service.check_user_exists(email, session)
 
     if user_exists:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="User already exists"
-        )
+        # raise HTTPException(
+        #     status_code=status.HTTP_403_FORBIDDEN, detail="User already exists"
+        # )
+        raise UserAlreadyExistsException(email)
     new_user = await user_auth_service.create_user(user_data, session)
     return new_user
 
@@ -74,10 +81,11 @@ async def login(login: UserLoginModel, session: AsyncSession = Depends(get_sessi
                     "refresh_token": refresh_token,
                 },
             )
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Invalid login. Wrong Email or Password",
-    )
+    # raise HTTPException(
+    #     status_code=status.HTTP_403_FORBIDDEN,
+    #     detail="Invalid login. Wrong Email or Password",
+    # )
+    raise InvalidCredentialsException()
 
 
 @auth_router.post("/refresh")
@@ -86,20 +94,21 @@ async def refresh_token(token_data: dict = Depends(refresh_token_bearer)):
     if datetime.fromtimestamp(expiry) > datetime.now():
         new_access_token = create_access_token(user_data=token_data["user"])
         return JSONResponse(content={"access_token": new_access_token})
-
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
-    )
+    raise InvalidTokenException()
+    # raise HTTPException(
+    #     status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
+    # )
 
 
 @auth_router.get("/me", response_model=UserBookModel)
 async def get_my_user(user=Depends(get_current_user), _: bool = Depends(role_checker)):
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Authentication credentials",
-            # headers=
-        )
+        # raise HTTPException(
+        #     status_code=status.HTTP_401_UNAUTHORIZED,
+        #     detail="Invalid Authentication credentials",
+        #     # headers=
+        # )
+        raise InvalidCredentialsException()
     return user
 
 

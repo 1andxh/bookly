@@ -6,7 +6,7 @@ from typing import AsyncGenerator
 from src.config import Config
 from src.db.models import Book
 
-async_engine = AsyncEngine(create_engine(url=Config.DATABASE_URL, echo=True))
+async_engine = AsyncEngine(create_engine(url=Config.DATABASE_URL, echo=False))
 
 
 async def init_db() -> None:

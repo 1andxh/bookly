@@ -9,6 +9,7 @@ from src.db.main import get_session
 from src.books.service import BookService
 from src.auth.dependencies import TokenBearer, AccessTokenBearer, RoleChecker
 from typing import Any
+from src.exceptions import BookNotFoundException
 
 book_router = APIRouter()
 book_service = BookService()
@@ -27,9 +28,10 @@ async def get_book(
 ):
     book = await book_service.get_book(book_id, session)
     if book is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
-        )
+        raise BookNotFoundException()
+        # raise HTTPException(
+        #     status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        # )
     return book
 
 
@@ -62,9 +64,11 @@ async def delete_book(
 ):
     book_to_delete = await book_service.delete_book(book_id, session)
     if book_to_delete is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
-        )
+        raise BookNotFoundException()
+
+        # raise HTTPException(
+        #     status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        # )
     return None
 
 
@@ -77,9 +81,11 @@ async def update_book(
 ) -> dict:
     book_to_update = await book_service.update_book(book_id, update_data, session)
     if book_to_update is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
-        )
+        raise BookNotFoundException()
+
+        # raise HTTPException(
+        #     status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        # )
     return {"Update": book_to_update}
 
 
