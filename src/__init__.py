@@ -42,8 +42,8 @@ async def bookly_exception_handler(request: Request, exc: BooklyException):
     )
 
 
-@app.exception_handler(500)
-async def internal_server_error(request: Request, exc: Exception):
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
     # logging.
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

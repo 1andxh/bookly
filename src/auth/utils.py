@@ -5,9 +5,12 @@ import jwt
 from src.config import Config
 import uuid
 import logging
+from itsdangerous import URLSafeTimedSerializer
+from typing import Any
+from fastapi.exceptions import HTTPException
+from fastapi import status
 
-
-jwt_secret_key = Config.JWT_SECRET 
+jwt_secret_key = Config.JWT_SECRET
 jwt_algorithm = Config.JWT_ALGORITHM
 
 ACCESS_TOKEN_EXPIRY = 3600
@@ -27,42 +30,66 @@ def verify_password(password: str, hash: str) -> bool:
 
 """using bcrypt directly"""
 
+
 def hash_password(password: str) -> str:
-    digest = hashlib.sha256(password.encode('utf-8')).digest()
+    digest = hashlib.sha256(password.encode("utf-8")).digest()
     hashed = bcrypt.hashpw(digest, bcrypt.gensalt())
-    return hashed.decode('utf-8')
+    return hashed.decode("utf-8")
+
 
 def verify_password(password: str, hashed: str) -> bool:
-    digest = hashlib.sha256(password.encode('utf-8')).digest()
-    return bcrypt.checkpw(digest, hashed.encode('utf-8'))
+    digest = hashlib.sha256(password.encode("utf-8")).digest()
+    return bcrypt.checkpw(digest, hashed.encode("utf-8"))
 
-def create_access_token(user_data: dict, expiry: timedelta | None = None, refresh: bool = False):
+
+def create_access_token(
+    user_data: dict, expiry: timedelta | None = None, refresh: bool = False
+):
     payload = {}
 
-    payload['user'] = user_data
+    payload["user"] = user_data
 
     if expiry is None:
         expiry = timedelta(seconds=ACCESS_TOKEN_EXPIRY)
-    payload['exp'] = datetime.now() + expiry 
+    payload["exp"] = datetime.now() + expiry
 
-    payload['jti'] = str(uuid.uuid4())
-    payload['refresh'] = refresh
+    payload["jti"] = str(uuid.uuid4())
+    payload["refresh"] = refresh
 
-    token = jwt.encode(
-        payload=payload,
-        key=jwt_secret_key,
-        algorithm=jwt_algorithm
-    )
+    token = jwt.encode(payload=payload, key=jwt_secret_key, algorithm=jwt_algorithm)
     return token
+
 
 def decode_token(token: str) -> dict | None:
     try:
         token_data = jwt.decode(
-            jwt=token,
-            key=jwt_secret_key,
-            algorithms=[jwt_algorithm]
+            jwt=token, key=jwt_secret_key, algorithms=[jwt_algorithm]
         )
         return token_data
     except jwt.PyJWTError as e:
         logging.exception(e)
         return None
+
+
+# email uitls
+serializer = URLSafeTimedSerializer(
+    secret_key=Config.JWT_SECRET,
+    salt="email-verification",
+)
+
+
+def create_url_safe_token(data: dict):
+    token = serializer.dumps(data)
+    return token
+
+
+def decode_url_safe_token(token: str) -> dict[str, Any]:
+    try:
+        token_data = serializer.loads(token)
+        return token_data
+    except Exception as e:
+        logging.error(str(e))
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not verify account"
+        )
+        # return None

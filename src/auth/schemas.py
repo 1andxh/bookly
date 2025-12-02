@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 import uuid
 from datetime import datetime
 from typing import List
@@ -27,7 +27,7 @@ class UserResponse(BaseModel):
     updated_at: datetime
 
     # class Config:
-    #     user_enum_values = True
+    #     from_attributes = True
 
 
 class UserBookModel(UserResponse):
@@ -43,3 +43,16 @@ class UserLoginModel(BaseModel):
 class UserBase(BaseModel):
     email: str
     id: uuid.UUID
+
+
+class EmailValidator(BaseModel):
+    addresses: List[str]
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    new_password: str = Field(min_length=8)
+    confirm_new_password: str

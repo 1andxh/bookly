@@ -1,4 +1,5 @@
 from fastapi import status
+from starlette.status import HTTP_401_UNAUTHORIZED
 
 # class UnicornException(Exception):
 #     def __init__(self, *args: object) -> None:
@@ -91,6 +92,16 @@ class UserNotFoundException(AuthenticationException):
 
     def __init__(self):
         super().__init__("User not found", status_code=status.HTTP_404_NOT_FOUND)
+
+
+class UserNotVerifiedException(AuthenticationException):
+    """Raise when user isn't verified"""
+
+    def __init__(self):
+        super().__init__(
+            "User account not verified. Check email to complete verification",
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
 
 
 class InsufficientPermissionException(AuthenticationException):

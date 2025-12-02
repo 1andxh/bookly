@@ -69,3 +69,24 @@ user = {
     "email": "plutomania123@example.com",
     "password": "weakpass1234!"
 }
+{
+    "firstname": "Mike",
+    "lastname": "Dean",
+    "username": "minato09",
+    "email": "andxh106@gmail.com",
+    "password": "StrongPass127!"
+}
+{
+    "firstname": "Wike",
+    "lastname": "Wean",
+    "username": "Winato09",
+    "email": "andxh106@gmail.com",
+    "password": "StrongPass128!"
+}
+{
+    "firstname": "Mike",
+    "lastname": "Mean",
+    "username": "MWinato09",
+    "email": "andxh106@gmail.com",
+    "password": "StrongPass129!"
+}

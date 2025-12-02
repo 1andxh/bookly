@@ -16,6 +16,7 @@ from src.exceptions import (
     AccessTokenRequiredException,
     InsufficientPermissionException,
     RevokedTokenException,
+    UserNotVerifiedException,
 )
 
 user_auth_service = UserAuthService()
@@ -130,6 +131,10 @@ class RoleChecker:
         self.allowed_roles = allowed_roles
 
     async def __call__(self, current_user: CurrentUser) -> Any:
+
+        if not current_user.is_verified:
+            raise UserNotVerifiedException()
+
         if current_user.role not in self.allowed_roles:
             # raise HTTPException(
             #     status_code=status.HTTP_403_FORBIDDEN,
