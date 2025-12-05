@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
+
+    # REDIS_URL: str = "redis://localhost:6379/0" concise way
     MAIL_USERNAME: str
     MAIL_PASSWORD: SecretStr
     MAIL_PORT: int
@@ -24,3 +26,5 @@ class Settings(BaseSettings):
 
 
 Config = Settings()  # type: ignore
+
+# broker_url

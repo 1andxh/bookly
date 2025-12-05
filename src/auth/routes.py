@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, BackgroundTasks
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse, PlainTextResponse
 from .schemas import (
@@ -40,11 +40,13 @@ from src.exceptions import (
 from src.mail import create_message, mail
 from src.config import Config
 
+
 auth_router = APIRouter()
 user_auth_service = UserAuthService()
 refresh_token_bearer = RefreshTokenBearer()
 access_token_bearer = AccessTokenBearer()
 role_checker = RoleChecker(["admin", "user"])
+# bg_tasks = BackgroundTasks()
 REFRESH_TOKEN_EXPIRY = 2
 
 
@@ -65,7 +67,9 @@ async def send_mail(emails: EmailValidator):
 
 @auth_router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user_account(
-    user_data: UserCreateModel, session: AsyncSession = Depends(get_session)
+    user_data: UserCreateModel,
+    bg_tasks: BackgroundTasks,
+    session: AsyncSession = Depends(get_session),
 ):
     email = user_data.email
 
@@ -117,7 +121,7 @@ async def create_user_account(
         subject="Verify your email address",
         body=html_content,
     )
-    await mail.send_message(message=message)
+    bg_tasks.add_task(mail.send_message, message)
     return {
         "message": "A link to veirfy your account as been sent to your email",
         "user": new_user,
@@ -220,7 +224,7 @@ async def revoke_token(token_data: dict = Depends(access_token_bearer)):
 
 
 @auth_router.post("/reset-password")
-async def password_reset(data: PasswordResetRequest):
+async def password_reset(data: PasswordResetRequest, bg_task: BackgroundTasks):
     email = data.email
     token = create_url_safe_token(data={"email": email})
 
@@ -265,7 +269,7 @@ async def password_reset(data: PasswordResetRequest):
         subject="Reset Password",
         body=html_content,
     )
-    await mail.send_message(message=message)
+    bg_task.add_task(mail.send_message, message)
 
     return JSONResponse(
         content={"message": "A link to reset your password has been sent to your mail"},
